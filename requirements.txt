@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+asyncpg
+alembic
+boto3
+httpx
+psycopg2-binary
+aio-pika
+redis
