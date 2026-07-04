@@ -24,8 +24,13 @@ class VideoRepository:
     async def update_status(self, video_id: uuid.UUID, status: str) -> None:
         video = await self.get_video(video_id)
         if video:
+            if video.status == "deleted" and status != "deleted":
+                return
             video.status = status
             await self.session.commit()
+
+    async def mark_deleted(self, video_id: uuid.UUID) -> None:
+        await self.update_status(video_id, "deleted")
 
     async def set_chunk_count(self, video_id: uuid.UUID, count: int) -> None:
         video = await self.get_video(video_id)

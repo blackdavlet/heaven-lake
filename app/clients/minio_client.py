@@ -72,3 +72,12 @@ def upload_exists(object_key: str) -> bool:
 def delete_object(object_key: str) -> None:
     s3 = get_s3_client()
     s3.delete_object(Bucket=BUCKET, Key=object_key)
+
+
+def delete_objects(object_keys: list[str]) -> None:
+    if not object_keys:
+        return
+
+    s3 = get_s3_client()
+    for object_key in object_keys:
+        s3.delete_object(Bucket=BUCKET, Key=object_key)

@@ -8,3 +8,6 @@ httpx
 psycopg2-binary
 aio-pika
 redis
+pytest
+pytest-asyncio
+httpx

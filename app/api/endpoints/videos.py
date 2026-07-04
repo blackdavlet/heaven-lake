@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.repositories.video_repo import VideoRepository
-from app.clients.minio_client import presigned_upload_url, upload_exists, presigned_download_url
+from app.clients.minio_client import presigned_upload_url, upload_exists, presigned_download_url, delete_objects
 from app.clients.redis_client import get_progress
 from app.messaging.publisher import publish_resolution_job
 from app.workers.splitter import split_video
@@ -13,6 +13,21 @@ from app.workers.splitter import split_video
 router = APIRouter(prefix="/videos", tags=["videos"])
 
 TARGET_RESOLUTIONS = ["480p", "720p", "1080p"]
+
+
+def video_storage_keys(video_id: uuid.UUID, chunk_count: int | None) -> list[str]:
+    video_id_str = str(video_id)
+    keys = [f"{video_id_str}.mp4"]
+    keys.extend(f"{video_id_str}_{resolution}.mp4" for resolution in TARGET_RESOLUTIONS)
+
+    for chunk_index in range(chunk_count or 0):
+        keys.append(f"{video_id_str}_{chunk_index}.mp4")
+        keys.extend(
+            f"{video_id_str}_{chunk_index}_{resolution}.mp4"
+            for resolution in TARGET_RESOLUTIONS
+        )
+
+    return keys
 
 
 @router.post("/upload")
@@ -81,6 +96,25 @@ async def get_status(video_id: uuid.UUID, session: AsyncSession = Depends(get_se
         "video_id": video_id,
         "status": video.status,
         "progress": progress
+    }
+
+
+@router.delete("/{video_id}")
+async def delete_video(video_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
+    repo = VideoRepository(session)
+    video = await repo.get_video(video_id)
+
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    object_keys = video_storage_keys(video_id, video.chunk_count)
+    await asyncio.to_thread(delete_objects, object_keys)
+    await repo.mark_deleted(video_id)
+
+    return {
+        "video_id": video_id,
+        "status": "deleted",
+        "deleted_objects": len(object_keys)
     }
 
 

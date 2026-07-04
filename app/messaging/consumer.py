@@ -24,6 +24,13 @@ async def handle_message(message: aio_pika.IncomingMessage):
         resolution = data["resolution"]
         chunk_count = data["chunk_count"]
 
+        async with AsyncSessionLocal() as session:
+            repo = VideoRepository(session)
+            video = await repo.get_video(video_id)
+            if not video or video.status == "deleted":
+                print(f"[Worker] Skipping {video_id} — deleted or missing")
+                return
+        
         print(f"[Worker] Starting {video_id} @ {resolution} ({chunk_count} chunks)")
 
         try:
