@@ -55,8 +55,7 @@ async def handle_message(message: aio_pika.IncomingMessage):
             for i in range(chunk_count):
                 await asyncio.to_thread(delete_object, f"{video_id}_{i}_{resolution}.mp4")
 
-            await cleanup_progress(video_id, resolution)
-            print(f"[Worker] {video_id} @ {resolution} assembled and cleaned up")
+            print(f"[Worker] {video_id} @ {resolution} assembled")
 
             all_done = True
             for res in TARGET_RESOLUTIONS:

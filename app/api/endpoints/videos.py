@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.repositories.video_repo import VideoRepository
 from app.clients.minio_client import presigned_upload_url, upload_exists, presigned_download_url, delete_objects
-from app.clients.redis_client import get_progress
+from app.clients.redis_client import get_progress, is_transcoding_complete
 from app.messaging.publisher import publish_resolution_job
 from app.workers.splitter import split_video
 
@@ -126,8 +126,8 @@ async def download_video(video_id: uuid.UUID, resolution: str = "720p", session:
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
 
-    if video.status != "ready":
-        raise HTTPException(status_code=400, detail=f"Video not ready, current status: {video.status}")
+    if not await is_transcoding_complete(str(video_id), resolution):
+        raise HTTPException(status_code=400, detail=f"{resolution} not ready yet")
 
     object_key = f"{video_id}_{resolution}.mp4"
     url = await asyncio.to_thread(presigned_download_url, object_key)
