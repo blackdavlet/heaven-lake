@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: heavenlake
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: heavenlake-api:latest
+          imagePullPolicy: Never
+          command: ["python", "-u", "-m", "app.messaging.consumer"]
+          envFrom:
+            - configMapRef:
+                name: heavenlake-config
+            - secretRef:
+                name: heavenlake-secrets
