@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: rabbitmq
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: rabbitmq
   replicas: 1
@@ -16,12 +16,12 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: rabbitmq:3-management
+          image: {{ .Values.rabbitmq.image }}
           env:
             - name: RABBITMQ_DEFAULT_USER
-              value: heavenlake
+              value: {{ .Values.rabbitmq.user | quote }}
             - name: RABBITMQ_DEFAULT_PASS
-              value: heavenlake
+              value: {{ .Values.rabbitmq.password | quote }}
           ports:
             - containerPort: 5672
             - containerPort: 15672
@@ -35,18 +35,22 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 1Gi
+            storage: {{ .Values.rabbitmq.storage }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: rabbitmq
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
+  type: NodePort
   selector:
     app: rabbitmq
   ports:
     - name: amqp
       port: 5672
+      targetPort: 5672
     - name: management
       port: 15672
+      targetPort: 15672
+      nodePort: {{ .Values.rabbitmq.managementNodePort }}

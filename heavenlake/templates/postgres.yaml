@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
   serviceName: postgres
   replicas: 1
@@ -16,14 +16,14 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16
+          image: {{ .Values.postgres.image }}
           env:
             - name: POSTGRES_USER
-              value: heavenlake
+              value: {{ .Values.postgres.user | quote }}
             - name: POSTGRES_PASSWORD
-              value: heavenlake
+              value: {{ .Values.postgres.password | quote }}
             - name: POSTGRES_DB
-              value: heavenlake
+              value: {{ .Values.postgres.database | quote }}
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -36,13 +36,13 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 1Gi
+            storage: {{ .Values.postgres.storage }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
     app: postgres

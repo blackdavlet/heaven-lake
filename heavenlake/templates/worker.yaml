@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: worker
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.worker.replicas }}
   selector:
     matchLabels:
       app: worker
@@ -15,11 +15,14 @@ spec:
     spec:
       containers:
         - name: worker
-          image: heavenlake-api:latest
-          imagePullPolicy: Never
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["python", "-u", "-m", "app.messaging.consumer"]
           envFrom:
             - configMapRef:
                 name: heavenlake-config
             - secretRef:
                 name: heavenlake-secrets
+          env:
+            - name: MAX_CONCURRENT
+              value: {{ .Values.worker.maxConcurrent | quote }}

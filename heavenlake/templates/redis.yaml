@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7
-          command: ["redis-server", "--requirepass", "heavenlake"]
+          image: {{ .Values.redis.image }}
+          command: ["redis-server", "--requirepass", "{{ .Values.redis.password }}"]
           ports:
             - containerPort: 6379
 ---
@@ -24,7 +24,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis
-  namespace: heavenlake
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
     app: redis

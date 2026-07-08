@@ -1,0 +1,45 @@
+namespace: heavenlake
+
+image:
+  repository: heavenlake-api
+  tag: latest
+  pullPolicy: Never
+
+api:
+  replicas: 1
+  port: 8000
+  nodePort: 30080
+
+worker:
+  replicas: 2
+  maxConcurrent: "2"
+
+postgres:
+  image: postgres:16
+  storage: 1Gi
+  user: heavenlake
+  password: heavenlake
+  database: heavenlake
+
+redis:
+  image: redis:7
+  password: heavenlake
+
+rabbitmq:
+  image: rabbitmq:3-management
+  storage: 1Gi
+  user: heavenlake
+  password: heavenlake
+  managementNodePort: 30672
+
+minio:
+  image: minio/minio
+  storage: 5Gi
+  rootUser: minioadmin
+  rootPassword: minioadmin
+  bucket: heavenlake
+  apiNodePort: 30090
+  consoleNodePort: 30091
+
+config:
+  maxConcurrentDefault: "4"
