@@ -19,6 +19,7 @@ def test_video_storage_keys_include_original_resolutions_and_chunks():
     keys = video_storage_keys(video_id, chunk_count=2)
 
     assert f"{video_id}.mp4" in keys
+    assert f"{video_id}_audio.aac" in keys
     for resolution in TARGET_RESOLUTIONS:
         assert f"{video_id}_{resolution}.mp4" in keys
 

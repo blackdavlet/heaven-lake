@@ -39,3 +39,11 @@ async def cleanup_progress(video_id: str, resolution: str) -> None:
             f"{video_id}:{resolution}:total",
             f"{video_id}:{resolution}:completed"
         )
+
+async def mark_video_deleted(video_id: str, ttl: int = 86400) -> None:
+    async with get_redis() as redis:
+        await redis.set(f"{video_id}:deleted", "1", ex=ttl)
+
+async def is_video_deleted(video_id: str) -> bool:
+    async with get_redis() as redis:
+        return await redis.exists(f"{video_id}:deleted") == 1
